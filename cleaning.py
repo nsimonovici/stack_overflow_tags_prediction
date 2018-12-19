@@ -9,44 +9,58 @@ from modules import replace_tag_synonym, join_tags_minus_nans
 
 ## 1) Retrieving data ##
 
+# Retrieve argument
+dataset_name = sys.argv[1]
+
 # Getting current path
 local_path = os.getcwd()
-# List files of interest
-data_files = [file for file in os.listdir(local_path + '/data') if file.startswith('QueryResults')]
 
-# If main dataset does not exist, Loop on files and construct main dataset
-try:
-    data_raw = pd.DataFrame()
-    print("Loading questions full dataset")
-    data_raw = pd.read_csv(local_path + "/data/data_questions.csv", sep=',')
-except:
-    # Loading one file to get columns names
-    file = data_files[0]
+if dataset_name == 'data_questions.csv':
+    # List files of interest
+    data_files = [file for file in os.listdir(local_path + '/data') if file.startswith('QueryResults')]
+
+    # If main dataset does not exist, Loop on files and construct main dataset
     try:
-        data_col_names = pd.read_csv(local_path + "/data/" + file, sep=',')
+        data_raw = pd.DataFrame()
+        print("Loading questions full dataset")
+        data_raw = pd.read_csv(local_path + "/data/data_questions.csv", sep=',')
     except FileNotFoundError:
-        print("Please check if the file %s is in the 'data' folder at the current location" % file)
-        sys.exit(1)
-    data_columns = data_col_names.columns
-
-    # Initialise main df
-    data_raw = pd.DataFrame(columns=data_columns)
-    # Loop over separate files to build main dataframe
-    for file in data_files:
-        print("Treating file : %s" % file)
-        # Verifying data presence
+        # Loading one file to get columns names
+        file = data_files[0]
         try:
-            data_temp = pd.read_csv(local_path + "/data/" + file, sep=',')
+            data_col_names = pd.read_csv(local_path + "/data/" + file, sep=',')
         except FileNotFoundError:
             print("Please check if the file %s is in the 'data' folder at the current location" % file)
             sys.exit(1)
+        data_columns = data_col_names.columns
+
+        # Initialise main df
+        data_raw = pd.DataFrame(columns=data_columns)
+        # Loop over separate files to build main dataframe
+        for file in data_files:
+            print("Treating file : %s" % file)
+            # Verifying data presence
+            try:
+                data_temp = pd.read_csv(local_path + "/data/" + file, sep=',')
+            except FileNotFoundError:
+                print("Please check if the file %s is in the 'data' folder at the current location" % file)
+                sys.exit(1)
+
+            # Save data
+            data_raw = data_raw.append(data_temp)
 
         # Save data
-        data_raw = data_raw.append(data_temp)
-
-    # Save data
-    print("Saving")
-    data_raw.to_csv("data/data_questions.csv", index=False)
+        print("Saving")
+        data_raw.to_csv("data/data_questions.csv", index=False)
+else:
+    # Load dataset
+    try:
+        data_raw = pd.DataFrame()
+        print("Loading '%s' dataset" % dataset_name)
+        data_raw = pd.read_csv(local_path + dataset_name, sep=',')
+    except FileNotFoundError:
+        print("Please check if the file '%s' is in the 'data' folder at the current location" % dataset_name)
+        sys.exit(1)
 
 # Only keep relevant features
 data_raw = data_raw.loc[:, ['Body', 'Title', 'Tags']]
@@ -55,7 +69,7 @@ data_raw = data_raw.loc[:, ['Body', 'Title', 'Tags']]
 try:
     print("Loading Tags Synonyms dataset")
     tags_synonyms = pd.read_csv(local_path + "/data/Tags_Synonyms.csv", sep=',')
-except:
+except FileNotFoundError:
     print("Please check if the file 'Tags_Synonyms.csv' is in the 'data' folder at the current location")
     sys.exit(1)
 

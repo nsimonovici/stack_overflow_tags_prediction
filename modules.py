@@ -213,7 +213,7 @@ def create_binary_target_df(selected_tags, data_set):
 
     return target_binary
 
-def data_preprocessing_kg(data):
+def data_preprocessing(data):
     """
     Function preparing data for unsupervised and supervised learning.
     Input is data as pandas dataframe.
