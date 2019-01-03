@@ -15,6 +15,17 @@ dataset_name = sys.argv[1]
 # Getting current path
 local_path = os.getcwd()
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+# Retrieve arguments
+=======
+# Retrieve argument
+>>>>>>> parent of dcf8f2b... End of main programming
+dataset_path = sys.argv[1]
+dataset_name = dataset_path.split("/")[-1]
+
+=======
+>>>>>>> parent of 99bf8b9... End coding input prediction before debugging
 if dataset_name == 'data_questions.csv':
     # List files of interest
     data_files = [file for file in os.listdir(local_path + '/data') if file.startswith('QueryResults')]

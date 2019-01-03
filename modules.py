@@ -152,7 +152,7 @@ def get_most_probable_tags(row, selected_tags):
         out_tags = np.array(selected_tags[0])
     else:
         out_tags = probs[:n_pred_tags].index.values
-
+    
     # Output string
     if n_pred_tags > 1:
         out_string = "/".join(out_tags.tolist())
@@ -300,8 +300,6 @@ def get_scores(truth_pred_comparison_df, unique_tags_serie):
     truth_pred_comparison_df['local_metric'] = truth_pred_comparison_df.apply(local_accuracy, axis=1)
     local_metric = truth_pred_comparison_df.local_metric.mean()
     
-    print("Average hand-made local accuracy score : %.2f" % local_metric)
-    
     ### Calculating f1_score ###
 
     # Split tags and make tags lists for multilabel binarizer to work with
@@ -311,14 +309,25 @@ def get_scores(truth_pred_comparison_df, unique_tags_serie):
     
     # Fit test true tags
     binarizer = preprocessing.MultiLabelBinarizer().fit(unique_tags_serie)
+<<<<<<< HEAD
+=======
 
     # Check what have been learnt by the binarizer
     print("sample of binarizer vocabulary", binarizer.classes_)
+>>>>>>> parent of dcf8f2b... End of main programming
     
     # Compute f1_score average on samples because of multi-label multi-class classification
     f1_score = metrics.f1_score(binarizer.transform(y_true_splitted),
                                 binarizer.transform(y_pred_splitted),
                                 average='samples')
+<<<<<<< HEAD
+    except:
+        import pdb;pdb.set_trace()
+    print("Average hand-made local accuracy score : %.2f" % local_metric)
+=======
 
+>>>>>>> parent of dcf8f2b... End of main programming
     print("F1 Score : %.3f" % f1_score)
 
+    # Check what have been learnt by the binarizer
+    print("sample of binarizer vocabulary", binarizer.classes_[:5])

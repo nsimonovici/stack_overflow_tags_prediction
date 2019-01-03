@@ -155,6 +155,115 @@ get_scores(comparison_df, unique_tags_serie)
 
 # Load input queries
 try:
+<<<<<<< HEAD
+    print("Loading clean input queries dataset")
+    input_data = pd.read_csv(local_path + "/data/InputQueries_clean.csv", sep=',')
+    print("Input queries clean dataset loaded")
+    need_to_clean = False
+except FileNotFoundError:
+    print("The 'InputQueries_clean.csv' file is not in the 'data' folder, need to clean the dataset")
+    need_to_clean = True
+
+## 7.2) Clean input queries if needed
+
+# If needed run cleaning script
+if need_to_clean:
+    # Making sure data to predict on are available
+    input_file_in_folder = False
+    while not input_file_in_folder:
+        try:
+            pd.read_csv(local_path + "/data/InputQueries.csv", sep=',')
+            input_file_in_folder = True
+        except FileNotFoundError:
+            print("The 'InputQueries.csv' file is not in the 'data' folder, impossible to predict tags")
+            print("Please add an input csv file named 'InputQueries.csv' in the 'data' folder")
+
+    os.system("python cleaning.py /data/InputQueries.csv")
+
+    # Loading cleant data
+    print("Loading clean input queries dataset")
+    input_data = pd.read_csv(local_path + "/data/InputQueries_clean.csv", sep=',')
+
+## 7.3) Process input
+
+X_input = data_preprocessing(input_data)
+
+print("\nCreating target matrice for input data\n")
+# Compute tags target matrices
+y_input = create_binary_target_df(sel_tags_train, input_data)
+
+# Get target strings
+y_input_tags = input_data.New_Tags_syn
+
+<<<<<<< HEAD
+# Gather unique tags of input
+# After removing synonyms :
+temp_list = [x.split('/') for x in input_data.New_Tags_syn.values.tolist()]
+tags_list = [y for x in temp_list for y in x]
+input_unique_tags_syn = list(set(tags_list))
+# Remove nan
+for value in input_unique_tags_syn:
+    try:
+        if np.isnan(value):
+            input_unique_tags_syn.remove(value)
+    except:
+        pass
+
+# Concatenate training unique tags and input tags for prediction
+complete_unique_tags_syn = list(set(sel_tags_train.tolist() + input_unique_tags_syn))
+# Gather all tags in a pandas Serie to train binarizers for later computing f1-score
+complete_unique_tags_serie = pd.Series(complete_unique_tags_syn).apply(lambda x: [x])
+print("\n%i tags in input questions have not been learn in training\n" % (len(np.setdiff1d(complete_unique_tags_syn, sel_tags_train))))
+
+## 7.4) Predict probability for each training classifier on input set
+=======
+## 7.4) Predict probability for each classifier on input set
+>>>>>>> parent of dcf8f2b... End of main programming
+
+print("\nPredict probability for each question of input set to belong to each selected tags\n")
+input_predictions = []
+count = 0
+zero_array = np.zeros((X_input.shape[0]))
+for clf in classifiers:
+    print(count, " / ", len(classifiers))
+    prediction = clf.predict_proba(X_input)
+
+    if prediction.shape[1] == 2:
+        input_predictions.append(prediction[:,1])
+    elif prediction.shape[1] == 1:
+        input_predictions.append(zero_array)
+    else:
+        import pdb;pdb.set_trace()
+    count += 1
+
+## 7.5) Predict input tags
+
+# Convert list of arrays to dataframe and keep probabilities over trusted threshold as tags predictions
+
+# Convert to df
+input_predictions_df = pd.DataFrame(np.array(input_predictions).T, columns=y_input.columns)
+# Map threshold
+input_predictions_df_thresh = input_predictions_df.copy()
+input_predictions_df_thresh[input_predictions_df_thresh < trusted_threshold] = 0
+
+# Build Predicted tags from classifiers, if more than 5 keep the 5 first with highest probability
+y_input_pred = pd.Series(name='Pred_tags')
+y_input_pred = input_predictions_df_thresh.apply(get_most_probable_tags, args=(sel_tags_train,), axis=1)
+
+# Concatenate predicted tags and true tags for comparison
+y_input_pred.index = y_input_tags.index
+input_comparison_df = pd.concat((y_input_pred, y_input_tags), axis=1)
+input_comparison_df.columns = ['Predicted_Tags', 'True_Tags']
+
+# Get metrics
+print("Metrics for tags predicting algorithm :")
+get_scores(input_comparison_df, unique_tags_serie)
+
+# Save output
+<<<<<<< HEAD
+output_data = pd.concat((input_data, pd.DataFrame(y_input_pred, columns=['tags_pred'])), axis=1)
+output_data.to_csv("data/OutputQueries.csv")
+=======
     print("Loading input queries dataset")
     data_raw = pd.read_csv(local_path + "/data/InputQueries.csv", sep=',')
     print("Input queries dataset loaded")
@@ -162,3 +271,7 @@ try:
 except:
     print("The 'data_questions_clean.csv' file is not in the 'data' folder")
     need_to_clean = True
+>>>>>>> parent of 99bf8b9... End coding input prediction before debugging
+=======
+output_data = pd.concat((input_data, y_input_pred))
+>>>>>>> parent of dcf8f2b... End of main programming
